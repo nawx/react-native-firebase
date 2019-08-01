@@ -5,6 +5,18 @@
 #import "RNFirebaseEvents.h"
 #import "RNFirebaseUtil.h"
 
+@implementation NSString (Additions)
+
+- (NSString *)URLStringByAppendingQueryString:(NSString *)queryString {
+    if (![queryString length]) {
+        return self;
+    }
+    return [NSString stringWithFormat:@"%@%@%@", self,
+            [self rangeOfString:@"?"].length > 0 ? @"&" : @"?", queryString];
+}
+
+@end
+
 @implementation RNFirebaseLinks
 
 static RNFirebaseLinks *theRNFirebaseLinks = nil;
@@ -47,7 +59,10 @@ RCT_EXPORT_MODULE();
     FIRDynamicLink *dynamicLink = [[FIRDynamicLinks dynamicLinks] dynamicLinkFromCustomSchemeURL:url];
     if (dynamicLink && dynamicLink.url) {
         NSURL* url = dynamicLink.url;
-        [self sendJSEvent:self name:LINKS_LINK_RECEIVED body:url.absoluteString];
+        NSString* query = [NSString stringWithFormat:@"matchType=%tu", dynamicLink.matchType];
+        [self sendJSEvent:self
+              name:LINKS_LINK_RECEIVED
+              body:[url.absoluteString URLStringByAppendingQueryString:query]];
         return YES;
     }
     return NO;
@@ -68,6 +83,11 @@ restorationHandler:
                     if (dynamicLink && dynamicLink.url && error == nil) {
                         NSURL* url = dynamicLink.url;
                         [self sendJSEvent:self name:LINKS_LINK_RECEIVED body:url.absoluteString];
+                        NSURL* url = dynamicLink.url;
+                        NSString* query = [NSString stringWithFormat:@"matchType=%tu", dynamicLink.matchType];
+                        [self sendJSEvent:self
+                              name:LINKS_LINK_RECEIVED
+                              body:[url.absoluteString URLStringByAppendingQueryString:query]];
                     } else if (error != nil && [NSPOSIXErrorDomain isEqualToString:error.domain] && error.code == 53) {
                         DLog(@"Failed to handle universal link on first attempt, retrying: %@", userActivity.webpageURL);
                         
@@ -79,7 +99,10 @@ restorationHandler:
                          completion:^(FIRDynamicLink * _Nullable dynamicLink, NSError * _Nullable error) {
                              if (dynamicLink && dynamicLink.url && error == nil) {
                                  NSURL* url = dynamicLink.url;
-                                 [self sendJSEvent:self name:LINKS_LINK_RECEIVED body:url.absoluteString];
+                                 NSString* query = [NSString stringWithFormat:@"matchType=%tu", dynamicLink.matchType];
+                                 [self sendJSEvent:self
+                                       name:LINKS_LINK_RECEIVED
+                                       body:[url.absoluteString URLStringByAppendingQueryString:query]];
                              } else {
                                  DLog(@"Failed to handle universal link during retry: %@", userActivity.webpageURL);
                              }
