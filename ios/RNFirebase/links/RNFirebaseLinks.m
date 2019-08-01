@@ -82,8 +82,6 @@ restorationHandler:
                 completion:^(FIRDynamicLink * _Nullable dynamicLink, NSError * _Nullable error) {
                     if (dynamicLink && dynamicLink.url && error == nil) {
                         NSURL* url = dynamicLink.url;
-                        [self sendJSEvent:self name:LINKS_LINK_RECEIVED body:url.absoluteString];
-                        NSURL* url = dynamicLink.url;
                         NSString* query = [NSString stringWithFormat:@"matchType=%tu", dynamicLink.matchType];
                         [self sendJSEvent:self
                               name:LINKS_LINK_RECEIVED
